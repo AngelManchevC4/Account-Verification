@@ -91,8 +91,8 @@ server.replace(
                     try {
                         Transaction.wrap(function () {
                             var error = {};
-                            
-                            accountObject = accountHelpers.createAccount(registrationForm.email,registrationForm.password,registrationForm.phone,registrationForm.firstName,registrationForm.lastName);
+
+                            accountObject = accountHelpers.createAccount(registrationForm.email, registrationForm.password, registrationForm.phone, registrationForm.firstName, registrationForm.lastName);
                         });
                     } catch (e) {
                         registrationForm.validForm = false;
@@ -107,7 +107,7 @@ server.replace(
                 formErrors.removeFormValues(registrationForm.form);
 
                 if (registrationForm.validForm) {
-                    
+
                     accountHelpers.sendVerificationEmail(accountObject);
 
                     res.setViewData({ authenticatedCustomer: authenticatedCustomer });
@@ -135,57 +135,16 @@ server.replace(
 );
 
 server.get("Verify", function (req, res, next) {
-    var CustomerMgr = require("dw/customer/CustomerMgr");
-    var Resource = require("dw/web/Resource");
-    var CustomObjectMgr = require("dw/object/CustomObjectMgr");
-    var CustomerMgr = require('dw/customer/CustomerMgr');
-    var Transaction = require('dw/system/Transaction');
-    var URLUtils = require("dw/web/URLUtils");
-    var authenticatedCustomer;
-    var serverError;
+    var accountHelpers = require('*/cartridge/scripts/helpers/accountHelpers');
 
+    var URLUtils = require("dw/web/URLUtils");
+    
     var decodedId = Encoder.decodeId(req.querystring.id);
 
-    var accountCustomObject = CustomObjectMgr.getCustomObject("ACCOUNTS_VERIFICATION_EMAIL", decodedId);
-
-    if (accountCustomObject) {
-        try {
-            Transaction.wrap(function () {
-                var error = {};
-                var newCustomer = CustomerMgr.createCustomer(accountCustomObject.custom.email, accountCustomObject.custom.password);
-
-                var authenticateCustomerResult = CustomerMgr.authenticateCustomer(accountCustomObject.custom.email, accountCustomObject.custom.password);
-                if (authenticateCustomerResult.status !== 'AUTH_OK') {
-                    error = { authError: true, status: authenticateCustomerResult.status };
-                    throw error;
-                }
-
-                authenticatedCustomer = CustomerMgr.loginCustomer(authenticateCustomerResult, false);
-
-                if (!authenticatedCustomer) {
-                    error = { authError: true, status: authenticateCustomerResult.status };
-                    throw error;
-                } else {
-                    // assign values to the profile
-                    var newCustomerProfile = newCustomer.getProfile();
-
-                    newCustomerProfile.firstName = accountCustomObject.custom.firstName;
-                    newCustomerProfile.lastName = accountCustomObject.custom.lastName;
-                    newCustomerProfile.phoneHome = accountCustomObject.custom.phone;
-                    newCustomerProfile.email = accountCustomObject.custom.email;
-
-                    CustomObjectMgr.remove(accountCustomObject);
-                }
-            });
-        } catch (e) {
-            serverError = true;
-        }
-    } else {
-        res.setStatusCode(404);
-    }
+    accountHelpers.createAccountAfterVerification('ACCOUNTS_VERIFICATION_EMAIL', decodedId)
 
     res.redirect(URLUtils.url('Account-Show'));
-
+   
     next();
 })
 
