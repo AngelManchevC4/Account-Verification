@@ -11,11 +11,7 @@ var base = server.extend(module.superModule);
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var userLoggedIn = require('*/cartridge/scripts/middleware/userLoggedIn');
 var consentTracking = require('*/cartridge/scripts/middleware/consentTracking');
-var Encoding = require('dw/crypto/Encoding');
-
-function decodeId(encodedId) {
-    return new dw.util.Bytes(Encoding.fromBase64(encodedId)).toString();
-}
+var Encoder = require('*/cartridge/scripts/util/utilityHelpers');
 
 server.replace(
     'SubmitRegistration',
@@ -96,14 +92,7 @@ server.replace(
                         Transaction.wrap(function () {
                             var error = {};
                             // var newCustomer = CustomerMgr.createCustomer(login, password);
-                            var accountID = UUIDUtils.createUUID();
-
-                            accountObject = CustomObjectMgr.createCustomObject("ACCOUNTS_VERIFICATION_EMAIL", accountID);
-                            accountObject.custom.email = registrationForm.email;
-                            accountObject.custom.password = registrationForm.password;
-                            accountObject.custom.phone = registrationForm.phone;
-                            accountObject.custom.firstName = registrationForm.firstName;
-                            accountObject.custom.lastName = registrationForm.lastName;
+                            accountObject = accountHelpers.createAccount();
                         });
                     } catch (e) {
                         registrationForm.validForm = false;
@@ -155,7 +144,7 @@ server.get("Verify", function (req, res, next) {
     var authenticatedCustomer;
     var serverError;
 
-    var decodedId = decodeId(req.querystring.id);
+    var decodedId = Encoder.decodeId(req.querystring.id);
 
     var accountCustomObject = CustomObjectMgr.getCustomObject("ACCOUNTS_VERIFICATION_EMAIL", decodedId);
 
