@@ -29,21 +29,26 @@ base.sendVerificationEmail = function (registeredUser) {
     emailHelpers.sendEmail(emailObj, 'checkout/confirmation/accountRegisteredEmail', userObject);
 }
 
-base.createAccount = function (account){
+base.createAccount = function (email, password, phone, firstName, lastName) {
+    var Transaction = require('dw/system/Transaction');
     var UUIDUtils = require('dw/util/UUIDUtils');
-    
+    var CustomObjectMgr = require("dw/object/CustomObjectMgr");
+
     var accountID = UUIDUtils.createUUID();
 
     var accountObject;
 
-    accountObject = CustomObjectMgr.createCustomObject("ACCOUNTS_VERIFICATION_EMAIL", accountID);
-    accountObject.custom.email = registrationForm.email;
-    accountObject.custom.password = registrationForm.password;
-    accountObject.custom.phone = registrationForm.phone;
-    accountObject.custom.firstName = registrationForm.firstName;
-    accountObject.custom.lastName = registrationForm.lastName;
+    Transaction.wrap(function () {
+        accountObject = CustomObjectMgr.createCustomObject("ACCOUNTS_VERIFICATION_EMAIL", accountID);
+        accountObject.custom.email = email;
+        accountObject.custom.password = password;
+        accountObject.custom.phone = phone;
+        accountObject.custom.firstName = firstName;
+        accountObject.custom.lastName = lastName;
+    });
 
     return accountObject;
 }
+
 
 module.exports = base;

@@ -91,8 +91,8 @@ server.replace(
                     try {
                         Transaction.wrap(function () {
                             var error = {};
-                            // var newCustomer = CustomerMgr.createCustomer(login, password);
-                            accountObject = accountHelpers.createAccount();
+                            
+                            accountObject = accountHelpers.createAccount(registrationForm.email,registrationForm.password,registrationForm.phone,registrationForm.firstName,registrationForm.lastName);
                         });
                     } catch (e) {
                         registrationForm.validForm = false;
