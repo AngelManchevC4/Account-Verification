@@ -11,6 +11,11 @@ var base = server.extend(module.superModule);
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var userLoggedIn = require('*/cartridge/scripts/middleware/userLoggedIn');
 var consentTracking = require('*/cartridge/scripts/middleware/consentTracking');
+var Encoding = require('dw/crypto/Encoding');
+
+function decodeId(encodedId) {
+    return new dw.util.Bytes(Encoding.fromBase64(encodedId)).toString();
+}
 
 server.replace(
     'SubmitRegistration',
@@ -150,7 +155,9 @@ server.get("Verify", function (req, res, next) {
     var authenticatedCustomer;
     var serverError;
 
-    var accountCustomObject = CustomObjectMgr.getCustomObject("ACCOUNTS_VERIFICATION_EMAIL", req.querystring.id);
+    var decodedId = decodeId(req.querystring.id);
+
+    var accountCustomObject = CustomObjectMgr.getCustomObject("ACCOUNTS_VERIFICATION_EMAIL", decodedId);
 
     if (accountCustomObject) {
         try {
